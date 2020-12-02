@@ -7,20 +7,24 @@ defmodule Mix.Tasks.HealthCheck do
   def run(_) do
     HTTPoison.start()
 
+    Process.send_after(self(), :health_check, @health_check_timeout)
+    Process.send_after(self(), :check_ps5, ps5_timeout())
+
     perform()
   end
 
   defp perform do
-    Process.send_after(self(), :health_check, @health_check_timeout)
-    Process.send_after(self(), :check_ps5, ps5_timeout())
-
     receive do
       :health_check ->
         make_health_check_request()
 
+        Process.send_after(self(), :health_check, @health_check_timeout)
+
       :check_ps5 ->
         check_ps5_in_mediaexpert(@mediaexpert_digital_url)
         check_ps5_in_mediaexpert(@mediaexpert_url)
+
+        Process.send_after(self(), :check_ps5, ps5_timeout())
     end
 
     perform()
