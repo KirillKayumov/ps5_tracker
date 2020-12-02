@@ -1,6 +1,5 @@
 defmodule Mix.Tasks.HealthCheck do
   @health_check_timeout 5 * 60_000
-  @ps5_timeout System.get_env("PS5_TIMEOUT") |> String.to_integer()
 
   @mediaexpert_url "https://www.mediaexpert.pl/gaming/playstation-5/konsole-ps5/konsola-sony-ps5-digital"
 
@@ -12,7 +11,7 @@ defmodule Mix.Tasks.HealthCheck do
 
   defp perform do
     Process.send_after(self(), :health_check, @health_check_timeout)
-    Process.send_after(self(), :check_ps5, @ps5_timeout)
+    Process.send_after(self(), :check_ps5, ps5_timeout())
 
     receive do
       :health_check -> make_health_check_request()
@@ -22,10 +21,8 @@ defmodule Mix.Tasks.HealthCheck do
     perform()
   end
 
-  defp make_health_check_request do
-    "HEALTH_CHECK_URL"
-    |> System.get_env()
-    |> HTTPoison.get()
+  defp ps5_timeout do
+    System.get_env("PS5_TIMEOUT") |> String.to_integer()
   end
 
   defp check_ps5_in_mediaexpert do
@@ -52,5 +49,11 @@ defmodule Mix.Tasks.HealthCheck do
       Poison.encode!(%{text: text, chat_id: 70_067_678}),
       [{"Content-Type", "application/json"}]
     )
+  end
+
+  defp make_health_check_request do
+    "HEALTH_CHECK_URL"
+    |> System.get_env()
+    |> HTTPoison.get()
   end
 end
