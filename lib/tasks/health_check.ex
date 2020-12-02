@@ -4,6 +4,12 @@ defmodule Mix.Tasks.HealthCheck do
   @mediaexpert_digital_url "https://www.mediaexpert.pl/gaming/playstation-5/konsole-ps5/konsola-sony-ps5-digital"
   @mediaexpert_url "https://www.mediaexpert.pl/gaming/playstation-5/konsole-ps5/konsola-sony-ps5"
 
+  @mvideo_digital_url "https://www.mvideo.ru/products/igrovaya-konsol-sony-playstation-5-digital-edition-40074203"
+
+  @me 70_067_678
+  @ilyas 58_246_450
+  @arkadiy 60_717_876
+
   def run(_) do
     HTTPoison.start()
 
@@ -23,6 +29,7 @@ defmodule Mix.Tasks.HealthCheck do
       :check_ps5 ->
         check_ps5_in_mediaexpert(@mediaexpert_digital_url)
         check_ps5_in_mediaexpert(@mediaexpert_url)
+        check_ps5_in_mvideo(@mvideo_digital_url)
 
         Process.send_after(self(), :check_ps5, ps5_timeout())
     end
@@ -47,15 +54,37 @@ defmodule Mix.Tasks.HealthCheck do
       |> String.contains?("Produkt chwilowo niedostępny w sklepie internetowym")
 
     case not_available do
-      true -> IO.puts("Not available in MediaExpert")
-      false -> notify("PS5 AVAILABLE #{url}")
+      true ->
+        IO.puts("Not available in MediaExpert")
+
+      false ->
+        notify("PS5 AVAILABLE #{url}", @me)
+        notify("PS5 AVAILABLE #{url}", @arkadiy)
     end
   end
 
-  defp notify(text) do
+  defp check_ps5_in_mvideo(url) do
+    response = HTTPoison.get!(url)
+    {:ok, document} = Floki.parse_document(response.body)
+
+    not_available =
+      document
+      |> Floki.find(".o-container__price-column .c-notifications__title")
+      |> Floki.text()
+      |> String.replace("\n", "")
+      |> String.replace(~r/\s+/, " ")
+      |> String.contains?("Товар распродан")
+
+    case not_available do
+      true -> IO.puts("Not available in Mvideo")
+      false -> notify("PS5 AVAILABLE #{url}", @ilyas)
+    end
+  end
+
+  def notify(text, chat_id) do
     HTTPoison.post!(
       "https://api.telegram.org/bot948991611:AAFMr_C_w1eUHtGE9e4HoU6__NlH6WFQ4HQ/sendMessage",
-      Poison.encode!(%{text: text, chat_id: 70_067_678}),
+      Poison.encode!(%{text: text, chat_id: chat_id}),
       [{"Content-Type", "application/json"}]
     )
   end
