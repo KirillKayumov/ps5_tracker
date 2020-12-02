@@ -1,7 +1,8 @@
 defmodule Mix.Tasks.HealthCheck do
   @health_check_timeout 5 * 60_000
 
-  @mediaexpert_url "https://www.mediaexpert.pl/gaming/playstation-5/konsole-ps5/konsola-sony-ps5-digital"
+  @mediaexpert_digital_url "https://www.mediaexpert.pl/gaming/playstation-5/konsole-ps5/konsola-sony-ps5-digital"
+  @mediaexpert_url "https://www.mediaexpert.pl/gaming/playstation-5/konsole-ps5/konsola-sony-ps5"
 
   def run(_) do
     HTTPoison.start()
@@ -14,8 +15,12 @@ defmodule Mix.Tasks.HealthCheck do
     Process.send_after(self(), :check_ps5, ps5_timeout())
 
     receive do
-      :health_check -> make_health_check_request()
-      :check_ps5 -> check_ps5_in_mediaexpert()
+      :health_check ->
+        make_health_check_request()
+
+      :check_ps5 ->
+        check_ps5_in_mediaexpert(@mediaexpert_digital_url)
+        check_ps5_in_mediaexpert(@mediaexpert_url)
     end
 
     perform()
@@ -25,8 +30,8 @@ defmodule Mix.Tasks.HealthCheck do
     System.get_env("PS5_TIMEOUT") |> String.to_integer()
   end
 
-  defp check_ps5_in_mediaexpert do
-    response = HTTPoison.get!(@mediaexpert_url)
+  defp check_ps5_in_mediaexpert(url) do
+    response = HTTPoison.get!(url)
     {:ok, document} = Floki.parse_document(response.body)
 
     not_available =
@@ -39,7 +44,7 @@ defmodule Mix.Tasks.HealthCheck do
 
     case not_available do
       true -> IO.puts("Not available in MediaExpert")
-      false -> notify("PS5 AVAILABLE ON MEDIAEXPERT!")
+      false -> notify("PS5 AVAILABLE #{url}")
     end
   end
 
