@@ -46,6 +46,7 @@ defmodule Ps5.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:floki, "~> 0.29.0"},
+      {:poison, "~> 4.0"},
       {:httpoison, "~> 1.7"}
     ]
   end

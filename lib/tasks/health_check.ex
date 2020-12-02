@@ -42,7 +42,15 @@ defmodule Mix.Tasks.HealthCheck do
 
     case not_available do
       true -> IO.puts("Not available in MediaExpert")
-      false -> IO.puts("Available!")
+      false -> notify("PS5 AVAILABLE ON MEDIAEXPERT!")
     end
+  end
+
+  defp notify(text) do
+    HTTPoison.post!(
+      "https://api.telegram.org/bot948991611:AAFMr_C_w1eUHtGE9e4HoU6__NlH6WFQ4HQ/sendMessage",
+      Poison.encode!(%{text: text, chat_id: 70_067_678}),
+      [{"Content-Type", "application/json"}]
+    )
   end
 end
