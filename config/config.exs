@@ -26,6 +26,14 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+config :wallaby,
+  driver: Wallaby.Chrome,
+  otp_app: :ps5,
+  chromedriver: [
+    path: System.get_env("HOME") <> "/.chromedriver/bin/chromedriver",
+    binary: System.get_env("GOOGLE_CHROME_SHIM")
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
