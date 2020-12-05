@@ -3,7 +3,33 @@ use Mix.Config
 config :wallaby,
   chromedriver: [
     path: System.get_env("HOME") <> "/.chromedriver/bin/chromedriver",
-    binary: System.get_env("GOOGLE_CHROME_SHIM")
+    binary: System.get_env("GOOGLE_CHROME_SHIM"),
+    capabilities: %{
+      javascriptEnabled: false,
+      loadImages: false,
+      version: "",
+      rotatable: false,
+      takesScreenshot: true,
+      cssSelectorsEnabled: true,
+      nativeEvents: false,
+      platform: "ANY",
+      unhandledPromptBehavior: "accept",
+      loggingPrefs: %{
+        browser: "DEBUG"
+      },
+      chromeOptions: %{
+        args: [
+          "--no-sandbox",
+          "window-size=1280,800",
+          "--disable-gpu",
+          "--headless",
+          "--fullscreen",
+          "--user-agent=Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
+          "--remote-debugging-port=9222",
+          "--disable-dev-shm-usage"
+        ]
+      }
+    }
   ],
   selenium: [
     capabilities: %{
