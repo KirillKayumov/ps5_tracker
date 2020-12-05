@@ -1,5 +1,11 @@
 use Mix.Config
 
+config :wallaby,
+  chromedriver: [
+    path: "~/.webdrivers/chromedriver",
+    headless: false
+  ]
+
 # Configure your database
 config :ps5, Ps5.Repo,
   username: "postgres",

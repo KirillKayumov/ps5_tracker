@@ -1,8 +1,13 @@
 defmodule Mix.Tasks.HealthCheck do
+  import Wallaby.Browser
+
   @health_check_timeout 5 * 60_000
 
   @mediaexpert_digital_url "https://www.mediaexpert.pl/gaming/playstation-5/konsole-ps5/konsola-sony-ps5-digital"
   @mediaexpert_url "https://www.mediaexpert.pl/gaming/playstation-5/konsole-ps5/konsola-sony-ps5"
+
+  @eurocom_digital_url "https://www.euro.com.pl/konsole-playstation-5/sony-konsola-playstation-5-edycja-digital-ps5.bhtml"
+  @eurocom_url "https://www.euro.com.pl/konsole-playstation-5/sony-konsola-playstation-5-ps5-blu-ray-4k.bhtml"
 
   @mvideo_digital_url "https://www.mvideo.ru/products/igrovaya-konsol-sony-playstation-5-digital-edition-40074203"
 
@@ -12,6 +17,7 @@ defmodule Mix.Tasks.HealthCheck do
 
   def run(_) do
     HTTPoison.start()
+    {:ok, _} = Application.ensure_all_started(:wallaby)
 
     Process.send_after(self(), :health_check, @health_check_timeout)
     Process.send_after(self(), :check_ps5, ps5_timeout())
@@ -19,22 +25,36 @@ defmodule Mix.Tasks.HealthCheck do
     perform()
   end
 
-  defp perform do
-    receive do
-      :health_check ->
-        make_health_check_request()
+  defp perform() do
+    {:ok, session} = Wallaby.start_session()
 
-        Process.send_after(self(), :health_check, @health_check_timeout)
+    try do
+      receive do
+        :health_check ->
+          make_health_check_request()
 
-      :check_ps5 ->
-        check_ps5_in_mediaexpert(@mediaexpert_digital_url)
-        check_ps5_in_mediaexpert(@mediaexpert_url)
-        check_ps5_in_mvideo(@mvideo_digital_url)
+          Process.send_after(self(), :health_check, @health_check_timeout)
 
-        Process.send_after(self(), :check_ps5, ps5_timeout())
+        :check_ps5 ->
+          check_ps5_in_mediaexpert(@mediaexpert_digital_url)
+          check_ps5_in_mediaexpert(@mediaexpert_url)
+          check_ps5_in_eurocom(@eurocom_digital_url, session)
+          check_ps5_in_eurocom(@eurocom_url, session)
+          check_ps5_in_mvideo(@mvideo_digital_url)
+
+          Process.send_after(self(), :check_ps5, ps5_timeout())
+      end
+    rescue
+      _ ->
+        close_session(session)
     end
 
+    close_session(session)
     perform()
+  end
+
+  defp close_session(session) do
+    Wallaby.end_session(session)
   end
 
   defp ps5_timeout do
@@ -60,6 +80,27 @@ defmodule Mix.Tasks.HealthCheck do
       false ->
         notify("PS5 AVAILABLE #{url}", @me)
         notify("PS5 AVAILABLE #{url}", @arkadiy)
+    end
+  end
+
+  defp check_ps5_in_eurocom(url, session) do
+    visit(session, url)
+
+    no_delivery = has_text?(session, "Brak możliwości dostawy")
+
+    add_to_cart =
+      Wallaby.Browser.has?(
+        session,
+        Wallaby.Query.css("button") |> Wallaby.Query.text("DO KOSZYKA")
+      )
+
+    case !no_delivery || add_to_cart do
+      true ->
+        notify("PS5 AVAILABLE #{url}", @me)
+        notify("PS5 AVAILABLE #{url}", @arkadiy)
+
+      false ->
+        IO.puts("Not available in Euro.com")
     end
   end
 
