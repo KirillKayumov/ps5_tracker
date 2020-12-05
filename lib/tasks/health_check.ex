@@ -46,7 +46,8 @@ defmodule Mix.Tasks.HealthCheck do
       end
     rescue
       _ ->
-        close_session(session)
+        IO.puts("something went wrong with Chrome")
+        :ok
     end
 
     close_session(session)
