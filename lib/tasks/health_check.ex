@@ -15,6 +15,9 @@ defmodule Mix.Tasks.HealthCheck do
   @ilyas 58_246_450
   @arkadiy 60_717_876
 
+  # @ilyas 1
+  # @arkadiy 2
+
   def run(_) do
     HTTPoison.start()
     {:ok, _} = Application.ensure_all_started(:wallaby)
@@ -40,7 +43,7 @@ defmodule Mix.Tasks.HealthCheck do
           check_ps5_in_mediaexpert(@mediaexpert_url)
           check_ps5_in_eurocom(@eurocom_digital_url, session)
           check_ps5_in_eurocom(@eurocom_url, session)
-          check_ps5_in_mediamarkt(@mediamarkt_url, session)
+          # check_ps5_in_mediamarkt(@mediamarkt_url, session)
           check_ps5_in_mvideo(@mvideo_digital_url)
 
           Process.send_after(self(), :check_ps5, ps5_timeout())
