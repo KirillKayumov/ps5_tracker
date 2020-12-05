@@ -4,6 +4,16 @@ config :wallaby,
   chromedriver: [
     path: System.get_env("HOME") <> "/.chromedriver/bin/chromedriver",
     binary: System.get_env("GOOGLE_CHROME_SHIM")
+  ],
+  selenium: [
+    capabilities: %{
+      javascriptEnabled: true,
+      browserName: "firefox",
+      "moz:firefoxOptions": %{
+        args: ["-headless"],
+        binary: System.get_env("FIREFOX_BIN")
+      }
+    }
   ]
 
 # For production, don't forget to configure the url host

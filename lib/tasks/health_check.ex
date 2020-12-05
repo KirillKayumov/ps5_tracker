@@ -1,6 +1,4 @@
 defmodule Mix.Tasks.HealthCheck do
-  import Wallaby.Browser
-
   @health_check_timeout 5 * 60_000
 
   @mediaexpert_digital_url "https://www.mediaexpert.pl/gaming/playstation-5/konsole-ps5/konsola-sony-ps5-digital"
@@ -12,8 +10,10 @@ defmodule Mix.Tasks.HealthCheck do
   @mvideo_digital_url "https://www.mvideo.ru/products/igrovaya-konsol-sony-playstation-5-digital-edition-40074203"
 
   @me 70_067_678
-  @ilyas 58_246_450
-  @arkadiy 60_717_876
+  # @ilyas 58_246_450
+  # @arkadiy 60_717_876
+  @ilyas 1
+  @arkadiy 2
 
   def run(_) do
     HTTPoison.start()
@@ -46,7 +46,7 @@ defmodule Mix.Tasks.HealthCheck do
       end
     rescue
       _ ->
-        IO.puts("something went wrong with Chrome")
+        IO.puts("something went wrong with Chrome/Firefox")
         :ok
     end
 
@@ -85,9 +85,10 @@ defmodule Mix.Tasks.HealthCheck do
   end
 
   defp check_ps5_in_eurocom(url, session) do
-    visit(session, url)
+    Wallaby.Browser.visit(session, url)
+    :timer.sleep(:timer.seconds(5))
 
-    no_delivery = has_text?(session, "Brak możliwości dostawy")
+    no_delivery = Wallaby.Browser.has_text?(session, "Brak możliwości dostawy")
 
     add_to_cart =
       Wallaby.Browser.has?(

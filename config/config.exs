@@ -26,7 +26,8 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-config :wallaby, driver: Wallaby.Chrome, otp_app: :ps5
+# config :wallaby, driver: Wallaby.Chrome, otp_app: :ps5
+config :wallaby, driver: Wallaby.Selenium, otp_app: :ps5
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
