@@ -12,11 +12,11 @@ defmodule Mix.Tasks.HealthCheck do
   @mvideo_digital_url "https://www.mvideo.ru/products/igrovaya-konsol-sony-playstation-5-digital-edition-40074203"
 
   @me 70_067_678
-  @ilyas 58_246_450
-  @arkadiy 60_717_876
+  # @ilyas 58_246_450
+  # @arkadiy 60_717_876
 
-  # @ilyas 1
-  # @arkadiy 2
+  @ilyas 1
+  @arkadiy 2
 
   def run(_) do
     HTTPoison.start()
@@ -43,7 +43,7 @@ defmodule Mix.Tasks.HealthCheck do
           check_ps5_in_mediaexpert(@mediaexpert_url)
           check_ps5_in_eurocom(@eurocom_digital_url, session)
           check_ps5_in_eurocom(@eurocom_url, session)
-          # check_ps5_in_mediamarkt(@mediamarkt_url, session)
+          check_ps5_in_mediamarkt(@mediamarkt_url, session)
           check_ps5_in_mvideo(@mvideo_digital_url)
 
           Process.send_after(self(), :check_ps5, ps5_timeout())
@@ -114,9 +114,10 @@ defmodule Mix.Tasks.HealthCheck do
     Wallaby.Browser.visit(session, url)
     :timer.sleep(:timer.seconds(5))
 
+    is_bot = Wallaby.Browser.has_text?(session, "Bot Traffic Warning")
     no_delivery = Wallaby.Browser.has_text?(session, "Produkt chwilowo niedostępny")
 
-    case no_delivery do
+    case is_bot || no_delivery do
       true ->
         IO.puts("Not available in MediaMarkt")
 
