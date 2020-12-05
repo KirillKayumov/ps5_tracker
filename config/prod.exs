@@ -3,9 +3,9 @@ use Mix.Config
 config :wallaby,
   chromedriver: [
     path: System.get_env("HOME") <> "/.chromedriver/bin/chromedriver",
-    binary: System.get_env("GOOGLE_CHROME_SHIM"),
+    binary: System.get_env("GOOGLE_CHROME_BIN"),
     capabilities: %{
-      javascriptEnabled: false,
+      javascriptEnabled: true,
       loadImages: false,
       version: "",
       rotatable: false,
