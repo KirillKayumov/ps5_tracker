@@ -50,7 +50,8 @@ defmodule Mix.Tasks.HealthCheck do
       end
     rescue
       _ ->
-        IO.puts("something went wrong with Chrome/Firefox")
+        notify("Restart dyno", @me)
+        IO.puts("something went wrong with Chrome")
         :ok
     end
 
