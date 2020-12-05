@@ -7,13 +7,13 @@ defmodule Mix.Tasks.HealthCheck do
   @eurocom_digital_url "https://www.euro.com.pl/konsole-playstation-5/sony-konsola-playstation-5-edycja-digital-ps5.bhtml"
   @eurocom_url "https://www.euro.com.pl/konsole-playstation-5/sony-konsola-playstation-5-ps5-blu-ray-4k.bhtml"
 
+  @mediamarkt_url "https://mediamarkt.pl/konsole-i-gry/playstation-5-dodatkowy-kontroler-dualsense-fifa-21-edycja-mistrzowska-steelbook"
+
   @mvideo_digital_url "https://www.mvideo.ru/products/igrovaya-konsol-sony-playstation-5-digital-edition-40074203"
 
   @me 70_067_678
-  # @ilyas 58_246_450
-  # @arkadiy 60_717_876
-  @ilyas 1
-  @arkadiy 2
+  @ilyas 58_246_450
+  @arkadiy 60_717_876
 
   def run(_) do
     HTTPoison.start()
@@ -40,6 +40,7 @@ defmodule Mix.Tasks.HealthCheck do
           check_ps5_in_mediaexpert(@mediaexpert_url)
           check_ps5_in_eurocom(@eurocom_digital_url, session)
           check_ps5_in_eurocom(@eurocom_url, session)
+          check_ps5_in_mediamarkt(@mediamarkt_url, session)
           check_ps5_in_mvideo(@mvideo_digital_url)
 
           Process.send_after(self(), :check_ps5, ps5_timeout())
@@ -106,6 +107,22 @@ defmodule Mix.Tasks.HealthCheck do
     end
   end
 
+  defp check_ps5_in_mediamarkt(url, session) do
+    Wallaby.Browser.visit(session, url)
+    :timer.sleep(:timer.seconds(5))
+
+    no_delivery = Wallaby.Browser.has_text?(session, "Produkt chwilowo niedostępny")
+
+    case no_delivery do
+      true ->
+        IO.puts("Not available in MediaMarkt")
+
+      false ->
+        notify("PS5 AVAILABLE #{url}", @me)
+        notify("PS5 AVAILABLE #{url}", @arkadiy)
+    end
+  end
+
   defp check_ps5_in_mvideo(url) do
     response = HTTPoison.get!(url)
     {:ok, document} = Floki.parse_document(response.body)
@@ -119,8 +136,12 @@ defmodule Mix.Tasks.HealthCheck do
       |> String.contains?("Товар распродан")
 
     case not_available do
-      true -> IO.puts("Not available in Mvideo")
-      false -> notify("PS5 AVAILABLE #{url}", @ilyas)
+      true ->
+        IO.puts("Not available in Mvideo")
+
+      false ->
+        notify("PS5 AVAILABLE #{url}", @ilyas)
+        notify("PS5 AVAILABLE #{url}", @me)
     end
   end
 
