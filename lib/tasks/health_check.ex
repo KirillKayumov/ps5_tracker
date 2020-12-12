@@ -41,9 +41,9 @@ defmodule Mix.Tasks.HealthCheck do
         :check_ps5 ->
           check_ps5_in_mediaexpert(@mediaexpert_digital_url)
           check_ps5_in_mediaexpert(@mediaexpert_url)
-          # check_ps5_in_eurocom(@eurocom_digital_url, session)
-          # check_ps5_in_eurocom(@eurocom_url, session)
-          # check_ps5_in_mediamarkt(@mediamarkt_url, session)
+          check_ps5_in_eurocom(@eurocom_digital_url, session)
+          check_ps5_in_eurocom(@eurocom_url, session)
+          check_ps5_in_mediamarkt(@mediamarkt_url, session)
           check_ps5_in_mvideo(@mvideo_digital_url)
 
           Process.send_after(self(), :check_ps5, ps5_timeout())
@@ -52,6 +52,7 @@ defmodule Mix.Tasks.HealthCheck do
       _ ->
         notify("Restart dyno", @me)
         IO.puts("something went wrong with Chrome")
+        Process.send_after(self(), :check_ps5, ps5_timeout())
         :ok
     end
 
