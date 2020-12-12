@@ -50,7 +50,6 @@ defmodule Mix.Tasks.HealthCheck do
       end
     rescue
       _ ->
-        notify("Restart dyno", @me)
         IO.puts("something went wrong with Chrome")
         Process.send_after(self(), :check_ps5, ps5_timeout())
         :ok
