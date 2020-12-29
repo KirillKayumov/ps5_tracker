@@ -39,7 +39,7 @@ defmodule Mix.Tasks.HealthCheck do
           Process.send_after(self(), :health_check, @health_check_timeout)
 
         :check_ps5 ->
-          check_ps5_in_mvideo(@mvideo_digital_url)
+          # check_ps5_in_mvideo(@mvideo_digital_url)
           check_ps5_in_mediaexpert(@mediaexpert_digital_url)
           check_ps5_in_mediaexpert(@mediaexpert_url)
           check_ps5_in_eurocom(@eurocom_digital_url, session)
