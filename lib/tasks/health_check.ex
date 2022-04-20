@@ -11,6 +11,8 @@ defmodule Mix.Tasks.HealthCheck do
 
   @mvideo_digital_url "https://www.mvideo.ru/products/igrovaya-konsol-sony-playstation-5-digital-edition-40074203"
 
+  @visa_url "https://www.vfsvisaonline.com/Netherlands-Global-Online-Appointment_Zone2/AppScheduling/AppWelcome.aspx?P=OG3X2CQ4L1NjVC94HrXIC7tGMHIlhh8IdveJteoOegY%3D"
+
   @me 70_067_678
   @ilyas 58_246_450
   @arkadiy 60_717_876
@@ -23,7 +25,8 @@ defmodule Mix.Tasks.HealthCheck do
     {:ok, _} = Application.ensure_all_started(:wallaby)
 
     Process.send_after(self(), :health_check, @health_check_timeout)
-    Process.send_after(self(), :check_ps5, ps5_timeout())
+    # Process.send_after(self(), :check_ps5, ps5_timeout())
+    Process.send_after(self(), :check_visa, ps5_timeout())
 
     perform()
   end
@@ -47,11 +50,16 @@ defmodule Mix.Tasks.HealthCheck do
           check_ps5_in_mediamarkt(@mediamarkt_url, session)
 
           Process.send_after(self(), :check_ps5, ps5_timeout())
+
+        :check_visa ->
+          check_visa(session)
+
+          Process.send_after(self(), :check_visa, ps5_timeout())
       end
     rescue
       _ ->
         IO.puts("something went wrong with Chrome")
-        Process.send_after(self(), :check_ps5, ps5_timeout())
+        Process.send_after(self(), :check_visa, ps5_timeout())
         :ok
     end
 
@@ -162,5 +170,48 @@ defmodule Mix.Tasks.HealthCheck do
     "HEALTH_CHECK_URL"
     |> System.get_env()
     |> HTTPoison.get()
+  end
+
+  defp check_visa(session) do
+    Wallaby.Browser.visit(session, @visa_url)
+
+    if Wallaby.Browser.has_text?(session, "Appointment Scheduling") do
+      IO.puts("Website loaded")
+    end
+
+    Wallaby.Browser.click(session, Wallaby.Query.link("Schedule Appointment"))
+
+    if Wallaby.Browser.has_text?(
+         session,
+         "Please select the Embassy or Consulate where you would like to submit an application"
+       ) do
+      IO.puts("1 step loaded")
+    end
+
+    Wallaby.Element.set_value(
+      Wallaby.Browser.find(session, Wallaby.Query.select("ctl00$plhMain$cboVAC")),
+      "Moscow"
+    )
+
+    Wallaby.Browser.click(session, Wallaby.Query.button("ctl00$plhMain$btnSubmit"))
+
+    if Wallaby.Browser.has_text?(session, "Embassy/ Consulate General of Netherlands in Moscow") do
+      IO.puts("2 step loaded")
+    end
+
+    Wallaby.Element.set_value(
+      Wallaby.Browser.find(session, Wallaby.Query.select("ctl00$plhMain$cboVisaCategory")),
+      "MVV – visa for long stay (>90 days)"
+    )
+
+    Wallaby.Browser.click(session, Wallaby.Query.button("ctl00$plhMain$btnSubmit"))
+
+    cond do
+      Wallaby.Browser.has_text?(session, "No date(s) available for appointment.") ->
+        IO.puts("No dates available")
+
+      true ->
+        notify("AVAILABLE DATES #{@visa_url}", @me)
+    end
   end
 end

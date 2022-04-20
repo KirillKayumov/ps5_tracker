@@ -8,8 +8,7 @@ config :wallaby,
 
 # Configure your database
 config :ps5, Ps5.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "kirillkayumov",
   database: "ps5_dev",
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,
